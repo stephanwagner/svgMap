@@ -816,6 +816,10 @@ export default class svgMap {
       'svgMap-map-wrapper',
       this.mapContainer
     );
+    this.mapWrapper.style.setProperty(
+      '--svg-map-country-fill',
+      this.toHex(this.options.colorNoData)
+    );
     this.mapImage = document.createElementNS(
       'http://www.w3.org/2000/svg',
       'svg'
