@@ -955,10 +955,32 @@ export default class svgMap {
     var countryElements = [];
 
     this.mapImage.addEventListener('pointerdown', e => {
+      if (!this.options.showTooltips) {
+        return;
+      }
+
+      this.mapImage.querySelectorAll('.svgMap-active')
+        .forEach((el) => el.classList.remove('svgMap-active'));
+
+      const countryElement = e.target;
+      if (countryElement?.tagName !== 'path') {
+        this.hideTooltip();
+        return;
+      }
+
+      countryElement.parentNode.insertBefore(
+        countryElement,
+        this.persistentTooltipGroup || null
+      );
+      countryElement.classList.add('svgMap-active');
+
+      const countryID = countryElement.dataset.id;
+      this.setTooltipContent(this.getTooltipContent(countryID));
+      this.showTooltip(e);
+
+      // For touch, move tooltip to the touch position and keep it there
       if (e.pointerType === 'touch') {
-        if (e.target?.tagName !== 'path') {
-          this.hideTooltip();
-        }
+        this.moveTooltip(e);
       }
     }, { passive: true });
 
@@ -1018,52 +1040,6 @@ export default class svgMap {
 
         this.mapImage.appendChild(countryElement);
         countryElements.push(countryElement);
-
-        // Handle touch end - remove active state and hide tooltip
-        countryElement.addEventListener(
-          'touchend',
-          function (e) {
-            const touch = e.changedTouches[0];
-            const elementAtEnd = document.elementFromPoint(
-              touch.clientX,
-              touch.clientY
-            );
-
-            // Only hide if touch ended outside the country or tooltip
-            if (
-              !elementAtEnd ||
-              (!elementAtEnd.closest('.svgMap-country') &&
-                !elementAtEnd.closest('.svgMap-tooltip'))
-            ) {
-              this.hideTooltip();
-              document
-                .querySelectorAll('.svgMap-active')
-                .forEach((el) => el.classList.remove('svgMap-active'));
-            }
-          }.bind(this),
-          { passive: true }
-        );
-
-        // Remove pointermove listener when leaving non-touch pointer
-        countryElement.addEventListener(
-          'pointerleave',
-          function (e) {
-            if (e.pointerType !== 'touch') {
-              if (
-                !(
-                  e.pointerType === 'mouse' &&
-                  this.options.showTooltips &&
-                  this.options.tooltipTrigger === 'click'
-                )
-              ) {
-                this.hideTooltip();
-                document
-                  .querySelectorAll('.svgMap-active')
-                  .forEach((el) => el.classList.remove('svgMap-active'));
-              }
-            }
-          }.bind(this)
-        );
 
         if (
           this.options.data.values &&
