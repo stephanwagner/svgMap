@@ -953,6 +953,26 @@ export default class svgMap {
 
     // Add map elements
     var countryElements = [];
+
+    this.mapImage.addEventListener('pointerleave', e => {
+      this.hideTooltip();
+    }, { passive: true });
+
+    this.mapImage.addEventListener('pointercancel', e => {
+      this.hideTooltip();
+    }, { passive: true });
+
+    // Handle touch move - update tooltip position while panning
+    this.mapImage.addEventListener('pointermove', e => {
+      const target = e.target;
+      if (target?.tagName !== 'path') {
+        this.hideTooltip();
+        return;
+      }
+
+      this.moveTooltip(e);
+    }, { passive: true });
+
     Object.keys(mapPaths).forEach(
       function (countryID) {
         var countryData = this.mapPaths[countryID];
@@ -976,26 +996,6 @@ export default class svgMap {
         this.mapImage.appendChild(countryElement);
         countryElements.push(countryElement);
 
-        // Add tooltip when touch is used
-        function handlePointerMove(e) {
-          if (e.pointerType === 'touch') return;
-
-          const target = document.elementFromPoint(e.clientX, e.clientY);
-
-          if (
-            !target ||
-            (!target.closest('.svgMap-country') &&
-              !target.closest('.svgMap-tooltip'))
-          ) {
-            this.hideTooltip();
-            document
-              .querySelectorAll('.svgMap-active')
-              .forEach((el) => el.classList.remove('svgMap-active'));
-          }
-        }
-
-        const handlePointerMoveBound = handlePointerMove.bind(this);
-
         countryElement.addEventListener(
           'pointerenter',
           function (e) {
@@ -1005,13 +1005,6 @@ export default class svgMap {
               this.options.tooltipTrigger === 'click'
             ) {
               return;
-            }
-
-            // Only add pointermove listener for non-touch pointers
-            if (e.pointerType !== 'touch') {
-              document.addEventListener('pointermove', handlePointerMoveBound, {
-                passive: true
-              });
             }
 
             document
@@ -1035,15 +1028,6 @@ export default class svgMap {
               }
             }
           }.bind(this)
-        );
-
-        // Handle touch move - update tooltip position while panning
-        countryElement.addEventListener(
-          'touchmove',
-          function (e) {
-            this.moveTooltip(e);
-          }.bind(this),
-          { passive: true }
         );
 
         // Handle touch end - remove active state and hide tooltip
@@ -1076,10 +1060,6 @@ export default class svgMap {
           'pointerleave',
           function (e) {
             if (e.pointerType !== 'touch') {
-              document.removeEventListener(
-                'pointermove',
-                handlePointerMoveBound
-              );
               if (
                 !(
                   e.pointerType === 'mouse' &&
