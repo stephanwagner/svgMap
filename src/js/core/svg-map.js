@@ -968,13 +968,32 @@ export default class svgMap {
 
     // Handle touch move - update tooltip position while panning
     this.mapImage.addEventListener('pointermove', e => {
-      const target = e.target;
-      if (target?.tagName !== 'path') {
+      const countryElement = e.target;
+      if (countryElement?.tagName !== 'path') {
         this.hideTooltip();
         return;
       }
 
-      this.moveTooltip(e);
+      document
+        .querySelectorAll('.svgMap-active')
+        .forEach((el) => el.classList.remove('svgMap-active'));
+
+      countryElement.parentNode.insertBefore(
+        countryElement,
+        this.persistentTooltipGroup || null
+      );
+      countryElement.classList.add('svgMap-active');
+
+      const countryID = countryElement.getAttribute('data-id');
+      if (this.options.showTooltips) {
+        this.setTooltipContent(this.getTooltipContent(countryID));
+        this.showTooltip(e);
+
+        // For touch, move tooltip to the touch position and keep it there
+        if (e.pointerType === 'touch') {
+          this.moveTooltip(e);
+        }
+      }
     }, { passive: true });
 
     Object.keys(mapPaths).forEach(
@@ -999,40 +1018,6 @@ export default class svgMap {
 
         this.mapImage.appendChild(countryElement);
         countryElements.push(countryElement);
-
-        countryElement.addEventListener(
-          'pointerenter',
-          function (e) {
-            if (
-              e.pointerType === 'mouse' &&
-              this.options.showTooltips &&
-              this.options.tooltipTrigger === 'click'
-            ) {
-              return;
-            }
-
-            document
-              .querySelectorAll('.svgMap-active')
-              .forEach((el) => el.classList.remove('svgMap-active'));
-
-            countryElement.parentNode.insertBefore(
-              countryElement,
-              this.persistentTooltipGroup || null
-            );
-            countryElement.classList.add('svgMap-active');
-
-            const countryID = countryElement.getAttribute('data-id');
-            if (this.options.showTooltips) {
-              this.setTooltipContent(this.getTooltipContent(countryID));
-              this.showTooltip(e);
-
-              // For touch, move tooltip to the touch position and keep it there
-              if (e.pointerType === 'touch') {
-                this.moveTooltip(e);
-              }
-            }
-          }.bind(this)
-        );
 
         // Handle touch end - remove active state and hide tooltip
         countryElement.addEventListener(
