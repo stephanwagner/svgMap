@@ -954,8 +954,12 @@ export default class svgMap {
     // Add map elements
     var countryElements = [];
 
-    this.mapImage.addEventListener('pointerleave', e => {
-      this.hideTooltip();
+    this.mapImage.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch') {
+        if (e.target?.tagName !== 'path') {
+          this.hideTooltip();
+        }
+      }
     }, { passive: true });
 
     this.mapImage.addEventListener('pointercancel', e => {
@@ -1074,26 +1078,6 @@ export default class svgMap {
               }
             }
           }.bind(this)
-        );
-
-        document.addEventListener(
-          'pointerover',
-          function (e) {
-            if (e.pointerType !== 'touch') return;
-
-            if (
-              e.target.closest('.svgMap-country') ||
-              e.target.closest('.svgMap-tooltip')
-            ) {
-              return;
-            }
-
-            this.hideTooltip();
-            document
-              .querySelectorAll('.svgMap-active')
-              .forEach((el) => el.classList.remove('svgMap-active'));
-          }.bind(this),
-          { passive: true }
         );
 
         if (
