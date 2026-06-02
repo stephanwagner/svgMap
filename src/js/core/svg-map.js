@@ -954,16 +954,21 @@ export default class svgMap {
     // Add map elements
     var countryElements = [];
 
+    const clearActive = function clearActive() {
+      this.mapImage.querySelectorAll('.svgMap-active')
+        .forEach((el) => el.classList.remove('svgMap-active'));
+    }.bind(this);
+
     this.mapImage.addEventListener('pointerdown', e => {
       if (!this.options.showTooltips) {
         return;
       }
 
-      this.mapImage.querySelectorAll('.svgMap-active')
-        .forEach((el) => el.classList.remove('svgMap-active'));
+      clearActive();
 
       const countryElement = e.target;
       if (countryElement?.tagName !== 'path') {
+        clearActive();
         this.hideTooltip();
         return;
       }
@@ -992,13 +997,12 @@ export default class svgMap {
     this.mapImage.addEventListener('pointermove', e => {
       const countryElement = e.target;
       if (countryElement?.tagName !== 'path') {
+        clearActive();
         this.hideTooltip();
         return;
       }
 
-      document
-        .querySelectorAll('.svgMap-active')
-        .forEach((el) => el.classList.remove('svgMap-active'));
+      clearActive();
 
       countryElement.parentNode.insertBefore(
         countryElement,
@@ -1130,9 +1134,7 @@ export default class svgMap {
             if (linkTarget) window.open(link, linkTarget);
             else window.location.href = link;
           } else {
-            this.mapImage
-              .querySelectorAll('.svgMap-country.svgMap-active')
-              .forEach((el) => el.classList.remove('svgMap-active'));
+            clearActive();
             countryElement.parentNode.insertBefore(
               countryElement,
               this.persistentTooltipGroup || null
@@ -1146,9 +1148,7 @@ export default class svgMap {
 
         if (callbackResultClick === false) return;
 
-        this.mapImage
-          .querySelectorAll('.svgMap-country.svgMap-active')
-          .forEach((el) => el.classList.remove('svgMap-active'));
+        clearActive();
         countryElement.parentNode.insertBefore(
           countryElement,
           this.persistentTooltipGroup || null
