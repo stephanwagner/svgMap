@@ -1202,14 +1202,6 @@ export default class svgMap {
     });
 
     this._clickTooltipOutsideHandler = function (ev) {
-      if (ev.pointerType !== 'mouse') return;
-      if (
-        !this.options.showTooltips ||
-        this.options.tooltipTrigger !== 'click' ||
-        !this.tooltip
-      ) {
-        return;
-      }
       if (!this.tooltip.classList.contains('svgMap-active')) return;
       var node = ev.target;
       if (
@@ -1228,11 +1220,6 @@ export default class svgMap {
           });
       }
     }.bind(this);
-    document.addEventListener(
-      'pointerdown',
-      this._clickTooltipOutsideHandler,
-      true
-    );
 
     // Expose instance
     var me = this;
@@ -2360,6 +2347,17 @@ export default class svgMap {
       return;
     }
     this.tooltip.classList.add('svgMap-active');
+
+    if (e.pointerType !== 'mouse' || (this.options.showTooltips && this.options.tooltipTrigger === 'click')) {
+      requestAnimationFrame(() => {
+        document.addEventListener(
+          'pointerdown',
+          this._clickTooltipOutsideHandler,
+          { once: true, passive: true },
+        );
+      });
+    }
+
     this.moveTooltip(e);
   }
 
@@ -2369,7 +2367,9 @@ export default class svgMap {
     if (!this.tooltip) {
       return;
     }
+
     this.tooltip.classList.remove('svgMap-active');
+    document.removeEventListener('pointerdown', this._clickTooltipOutsideHandler);
   }
 
   // Move the tooltip
