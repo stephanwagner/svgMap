@@ -959,6 +959,8 @@ export default class svgMap {
         .forEach((el) => el.classList.remove('svgMap-active'));
     }.bind(this);
 
+    const isClickTooltip = this.options.showTooltips && this.options.tooltipTrigger === 'click';
+
     this.mapImage.addEventListener('pointerdown', e => {
       if (!this.options.showTooltips) {
         return;
@@ -995,6 +997,8 @@ export default class svgMap {
 
     // Handle touch move - update tooltip position while panning
     this.mapImage.addEventListener('pointermove', e => {
+      if (e.pointerType === 'mouse' && isClickTooltip) return;
+
       const countryElement = e.target;
       if (countryElement?.tagName !== 'path') {
         clearActive();
@@ -1111,14 +1115,11 @@ export default class svgMap {
       const hasLink = !!link;
       const isTouch = e.pointerType === 'touch' || e.pointerType === 'pen';
 
-      const isClickTooltipMouse =
-        e.pointerType === 'mouse' &&
-        this.options.showTooltips &&
-        this.options.tooltipTrigger === 'click';
+      const isClickTooltipMouse = e.pointerType === 'mouse' && isClickTooltip;
 
       if (!hasLink && !hasCallback && !isClickTooltipMouse) return;
 
-      if (isClickTooltipMouse && this.options.showTooltips) {
+      if (isClickTooltipMouse) {
         const willNavigate =
           hasLink && countryElement.classList.contains('svgMap-active');
         const shouldFireCallback = hasCallback && (!hasLink || willNavigate);
