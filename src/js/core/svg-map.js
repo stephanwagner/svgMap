@@ -1014,7 +1014,7 @@ export default class svgMap {
       );
       countryElement.classList.add('svgMap-active');
 
-      const countryID = countryElement.getAttribute('data-id');
+      const countryID = countryElement.dataset.id;
       if (this.options.showTooltips) {
         this.setTooltipContent(this.getTooltipContent(countryID));
         this.showTooltip(e);
@@ -1043,7 +1043,7 @@ export default class svgMap {
           'id',
           this.id + '-map-country-' + countryID
         );
-        countryElement.setAttribute('data-id', countryID);
+        countryElement.dataset.id = countryID;
         countryElement.classList.add('svgMap-country');
 
         this.mapImage.appendChild(countryElement);
@@ -1054,15 +1054,9 @@ export default class svgMap {
           this.options.data.values[countryID] &&
           this.options.data.values[countryID]['link']
         ) {
-          countryElement.setAttribute(
-            'data-link',
-            this.options.data.values[countryID]['link']
-          );
+          countryElement.dataset.link = this.options.data.values[countryID]['link'];
           if (this.options.data.values[countryID]['linkTarget']) {
-            countryElement.setAttribute(
-              'data-link-target',
-              this.options.data.values[countryID]['linkTarget']
-            );
+            countryElement.dataset.linkTarget = this.options.data.values[countryID]['linkTarget'];
           }
         }
       }.bind(this)
@@ -1108,9 +1102,9 @@ export default class svgMap {
       const countryElement = e.target.closest('.svgMap-country');
       if (!countryElement) return;
 
-      const countryID = countryElement.getAttribute('data-id');
-      const link = countryElement.getAttribute('data-link');
-      const linkTarget = countryElement.getAttribute('data-link-target');
+      const countryID = countryElement.dataset.id;
+      const link = countryElement.dataset.link;
+      const linkTarget = countryElement.dataset.linkTarget;
       const hasCallback = typeof this.options.onCountryClick === 'function';
       const hasLink = !!link;
       const isTouch = e.pointerType === 'touch' || e.pointerType === 'pen';
@@ -1302,7 +1296,7 @@ export default class svgMap {
 
     countryElements.forEach(
       function (countryElement) {
-        var countryID = countryElement.getAttribute('data-id');
+        var countryID = countryElement.dataset.id;
         if (!this.shouldShowTooltipOnLoad(countryID)) {
           return;
         }
@@ -2349,6 +2343,8 @@ export default class svgMap {
     this.tooltip.classList.add('svgMap-active');
 
     if (e.pointerType !== 'mouse' || (this.options.showTooltips && this.options.tooltipTrigger === 'click')) {
+      // don't register event listener in the same frame
+      // to prevent it from being triggered immediately
       requestAnimationFrame(() => {
         document.addEventListener(
           'pointerdown',
